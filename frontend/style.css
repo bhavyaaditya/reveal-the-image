@@ -1,0 +1,14 @@
+body {
+  margin: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  background: #111;
+}
+
+canvas {
+  width: 512px;
+  height: 512px;
+  cursor: crosshair;
+}
