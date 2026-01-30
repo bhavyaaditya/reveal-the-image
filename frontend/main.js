@@ -8,10 +8,10 @@ const ctx = canvas.getContext("2d");
 const SIZE = 512;              // Canvas resolution
 const MAX_DEPTH = 7;           // Controls detail level (2^7 = 128)
 const images = [
-  "../images/img1.jpg",
-  "../images/img2.jpg",
-  "../images/img3.jpg",
-  "../images/img4.jpg"
+  "/images/img1.jpg",
+  "/images/img2.jpg",
+  "/images/img3.jpg",
+  "/images/img4.jpg"
 ];
 
 canvas.width = SIZE;
