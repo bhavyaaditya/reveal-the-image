@@ -10,7 +10,7 @@ BUCKET_NAME = "reveal-image-assets"
 
 @app.route("/health")
 def health():
-    return jsonify({"status":"ok"}), 200
+    return jsonify({"status":"ok", "via":"cloud-build"}), 200
 
 @app.route("/images", methods=["GET"])
 def images():
