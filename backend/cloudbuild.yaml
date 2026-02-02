@@ -8,9 +8,12 @@ steps:
       - build
       - -t
       - us-central1-docker.pkg.dev/reveal-the-image-app/reveal-backend-repo/reveal-backend:latest
-      - .
+      # Cloud Build expects the Dockerfile to be present at the root of the GitHub repo, which it then puts in the directory "workspace" and hence expects "/workspace/Dockerfile". Because this app's Dockerfile is inside the backend folder, the path to that file has been hardcoded below to avoid the "/workspace/Dockerfile" error.
+      - -f
+      - backend/Dockerfile
+      - backend
 
-  # 2. Push image to Artifact Registry
+  # 2. Push image
   - name: gcr.io/cloud-builders/docker
     args:
       - push
