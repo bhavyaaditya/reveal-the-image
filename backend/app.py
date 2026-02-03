@@ -3,8 +3,10 @@
 # Deploy using this script/command from /backend: `./.deploy.sh`
 from flask import Flask, jsonify
 from google.cloud import storage
+from flask_cors import CORS
 
 app = Flask(__name__)
+CORS(app)
 
 BUCKET_NAME = "reveal-image-assets"
 
