@@ -6,6 +6,7 @@ from google.cloud import storage
 from flask_cors import CORS
 
 from datetime import timedelta
+from google.auth import default
 
 app = Flask(__name__)
 CORS(app)
@@ -21,6 +22,11 @@ def images():
     client = storage.Client()
     bucket = client.bucket(BUCKET_NAME)
 
+    #! Get IAM based credentials + service account email
+    credentials, project = default()
+    service_account_email = credentials.service_account_email()
+    print("Signing as:", service_account_email)
+
     image_list = []
 
     for blob in bucket.list_blobs():
@@ -29,7 +35,10 @@ def images():
                 version="v4",
                 expiration=timedelta(minutes=5),
                 method="GET",
+                service_account_email=service_account_email,
+                credentials=credentials,
             )
+
             image_list.append({
                 "name":blob.name,
                 "url":signed_url,
