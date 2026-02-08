@@ -8,6 +8,7 @@ from flask_cors import CORS
 from datetime import timedelta
 from google.auth import default
 from google.auth.iam import Signer
+from google.auth.transport.requests import Request
 
 app = Flask(__name__)
 CORS(app)
@@ -31,9 +32,11 @@ def images():
     if not service_account_email:
         raise RuntimeError("#>#>#>--->>> Service account email not available.")
     #! Create IAM Signer
+    request=Request()   # Transport object bound to the signer
     signer = Signer(
         credentials=credentials,
         service_account_email=service_account_email,
+        request=request,
     )
 
     image_list = []
