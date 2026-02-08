@@ -5,6 +5,8 @@ from flask import Flask, jsonify
 from google.cloud import storage
 from flask_cors import CORS
 
+from datetime import timedelta
+
 app = Flask(__name__)
 CORS(app)
 
@@ -23,9 +25,14 @@ def images():
 
     for blob in bucket.list_blobs():
         if blob.content_type and blob.content_type.startswith("image/"):
+            signed_url = blob.generate_signed_url(
+                version="v4",
+                expiration=timedelta(minutes=5),
+                method="GET",
+            )
             image_list.append({
                 "name":blob.name,
-                "url":f"https://storage.googleapis.com/reveal-image-assets/{blob.name}",
+                "url":signed_url,
             })
 
     return jsonify({

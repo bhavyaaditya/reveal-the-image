@@ -2,17 +2,13 @@
 // Minimal Koalas-to-the-Max style implementation
 // Entire logic runs client-side using Canvas
 
+const API_BASE_URL = "https://reveal-backend-727070728102.us-central1.run.app";
+
 const canvas = document.getElementById("canvas");
 const ctx = canvas.getContext("2d");
 
 const SIZE = 512;              // Canvas resolution
 const MAX_DEPTH = 7;           // Controls detail level (2^7 = 128)
-const images = [
-  "/images/img1.jpg",
-  "/images/img2.jpg",
-  "/images/img3.jpg",
-  "/images/img4.jpg"
-];
 
 canvas.width = SIZE;
 canvas.height = SIZE;
@@ -23,6 +19,16 @@ canvas.height = SIZE;
 function randomChoice(arr) {
   return arr[Math.floor(Math.random() * arr.length)];
 }
+
+// -----------------------------
+// Backend Connection
+// -----------------------------
+async function fetchImagesFromBackend(){
+  const response = await fetch(`${API_BASE_URL}/images`);
+  const data = await response.json();
+  return data.images; 
+}
+
 
 // -----------------------------
 // Quadtree Node
@@ -124,11 +130,15 @@ function findNode(node, mx, my) {
 }
 
 canvas.addEventListener("mousemove", (e) => {
+  if(!root || !imageData) return; // Ensures no interaction before image is ready, i.e. mouse pointer doesn't change style if image is not yet loaded
+
   const rect = canvas.getBoundingClientRect();
   const mx = ((e.clientX - rect.left) / rect.width) * SIZE;
   const my = ((e.clientY - rect.top) / rect.height) * SIZE;
 
   const target = findNode(root, mx, my);
+  if(!target) return; // Ensures no interaction before image is ready, i.e. mouse pointer doesn't change style if image is not yet loaded
+
   splitNode(target, imageData);
   redraw(root);
 });
@@ -149,11 +159,33 @@ function init(image) {
   redraw(root);
 }
 
-function loadImage() {
-  const img = new Image();
-  img.crossOrigin = "anonymous";
-  img.src = randomChoice(images);
-  img.onload = () => init(img);
+async function loadImage(){
+  try{
+    const images = await fetchImagesFromBackend();
+
+    if(!images || images.length === 0){
+      console.error("No images received from backend");
+      return;
+    }
+
+    const chosen = randomChoice(images);
+
+    const img = new Image();
+    img.crossOrigin = "anonymous";
+    img.src = chosen.url;
+
+    img.onload = () => {
+      console.log("Image loaded:", chosen.url);
+      init(img);
+    };
+
+    img.onerror = () => {
+      console.error("Failed to load image:", chosen.url);
+    };
+
+  } catch(err) {
+    console.error("loadImage failed: ",err);
+  }
 }
 
 loadImage();
