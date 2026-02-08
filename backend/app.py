@@ -24,7 +24,7 @@ def images():
 
     #! Get IAM based credentials + service account email
     credentials, project = default()
-    service_account_email = credentials.service_account_email()
+    service_account_email = credentials.service_account_email
     print("Signing as:", service_account_email)
 
     image_list = []
