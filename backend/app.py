@@ -7,6 +7,7 @@ from flask_cors import CORS
 
 from datetime import timedelta
 from google.auth import default
+from google.auth.iam import Signer
 
 app = Flask(__name__)
 CORS(app)
@@ -22,10 +23,18 @@ def images():
     client = storage.Client()
     bucket = client.bucket(BUCKET_NAME)
 
-    #! Get IAM based credentials + service account email
+    #! Get Cloud Run credentials (token-based)
     credentials, project = default()
+    #! Get service account details
     service_account_email = credentials.service_account_email
-    print("Signing as:", service_account_email)
+    print("#>#>#>--->>> Signing as:", service_account_email)
+    if not service_account_email:
+        raise RuntimeError("#>#>#>--->>> Service account email not available.")
+    #! Create IAM Signer
+    signer = Signer(
+        credentials=credentials,
+        service_account_email=service_account_email,
+    )
 
     image_list = []
 
@@ -36,7 +45,7 @@ def images():
                 expiration=timedelta(minutes=5),
                 method="GET",
                 service_account_email=service_account_email,
-                credentials=credentials,
+                signer=signer,
             )
 
             image_list.append({
