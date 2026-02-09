@@ -5,10 +5,7 @@ from flask import Flask, jsonify
 from google.cloud import storage
 from flask_cors import CORS
 
-from datetime import timedelta
-from google.auth import default
-from google.auth.iam import Signer
-from google.auth.transport.requests import Request
+from flask import Response
 
 app = Flask(__name__)
 CORS(app)
@@ -24,42 +21,39 @@ def images():
     client = storage.Client()
     bucket = client.bucket(BUCKET_NAME)
 
-    #! Get Cloud Run credentials (token-based)
-    credentials, project = default()
-    #! Get service account details
-    service_account_email = credentials.service_account_email
-    print("#>#>#>--->>> Signing as:", service_account_email)
-    if not service_account_email:
-        raise RuntimeError("#>#>#>--->>> Service account email not available.")
-    #! Create IAM Signer
-    request=Request()   # Transport object bound to the signer
-    signer = Signer(
-        credentials=credentials,
-        service_account_email=service_account_email,
-        request=request,
-    )
-
     image_list = []
 
     for blob in bucket.list_blobs():
         if blob.content_type and blob.content_type.startswith("image/"):
-            signed_url = blob.generate_signed_url(
-                version="v4",
-                expiration=timedelta(minutes=5),
-                method="GET",
-                service_account_email=service_account_email,
-                signer=signer,
-            )
-
             image_list.append({
                 "name":blob.name,
-                "url":signed_url,
+                "url":f"/image/{blob.name}",
             })
 
     return jsonify({
         "count": len(image_list),
         "images": image_list
     }), 200
+
+@app.route("/image/<path:filename>", method=['GET'])
+def serve_image(filename):
+    client = storage.Client()
+    bucket = client.bucket(BUCKET_NAME)
+    blob = bucket.blob(filename)
+
+    if not blob.exists():
+        return jsonify({"error":"IMAGE NOT FOUND"}), 404
+    
+    image_bytes = blob.download_as_bytes()
+
+    return Response(
+        image_bytes,
+        mimetype = blob.content_type,
+        headers = {
+            "Access-Control-Allow-Origin": "*",
+            "Cache-Control": "public, max-age=300"
+        }
+    )
 
 if __name__=="__main__":
     app.run(
