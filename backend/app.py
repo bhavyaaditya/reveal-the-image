@@ -35,7 +35,7 @@ def images():
         "images": image_list
     }), 200
 
-@app.route("/image/<path:filename>", method=['GET'])
+@app.route("/image/<path:filename>", methods=['GET'])
 def serve_image(filename):
     client = storage.Client()
     bucket = client.bucket(BUCKET_NAME)
