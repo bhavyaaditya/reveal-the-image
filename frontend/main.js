@@ -172,7 +172,7 @@ async function loadImage(){
 
     const img = new Image();
     img.crossOrigin = "anonymous";
-    img.src = chosen.url;
+    img.src = API_BASE_URL+chosen.url;
 
     img.onload = () => {
       console.log("Image loaded:", chosen.url);
